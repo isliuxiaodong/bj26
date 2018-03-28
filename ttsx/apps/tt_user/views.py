@@ -1,14 +1,17 @@
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from .models import User
+from .models import User, Address, AreaInfo
 import re
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import send_mail
 from django.conf import settings
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired
 from celery_tasks.tasks import send_user_active
-from django.contrib.auth import authenticate, login
-
+from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth.decorators import login_required
+from utils.views import LoginRequiredViewMixin
+from django_redis import get_redis_connection
+from tt_goods.models import GoodsSKU
 
 # Create your views here.
 class Registerview(View):
@@ -134,7 +137,8 @@ class LoginView(View):
 
         login(request, user)
 
-        response = redirect('/user/info')
+        next_url = request.GET.get('next','/user/info')
+        response = redirect(next_url)
 
         if remember is None:
             response.delete_cookie('uname')
@@ -143,3 +147,110 @@ class LoginView(View):
             response.set_cookie('uname', uname, expires=60 * 60)
 
         return response
+
+
+def logout_user(request):
+    logout(request)
+
+    return redirect('/user/login')
+
+@login_required()
+def info(request):
+    # if not request.user.is_authenticated():
+    #     return redirect('/user/login')
+    address = request.user.address_set.filter(isDefault=True)
+    if address:
+        address = address[0]
+    else:
+        address = None
+
+    # 获取redis服务器的连接,根据settings.py中的caches的default获取
+    redis_client = get_redis_connection()
+    # 因为redis中会存储所有用户的浏览记录，所以在键上需要区分用户
+    gid_list = redis_client.lrange('history%d' % request.user.id, 0, -1)
+    # 根据商品编号查询商品对象
+    goods_list = []
+    for gid in gid_list:
+        goods_list.append(GoodsSKU.objects.get(pk=gid))
+
+    context = {
+        'title': '个人信息',
+        'address': address,
+        # 'goods_list': goods_list,
+    }
+    return render(request,'user_center_info.html',context)
+
+@login_required()
+def order(request):
+    context={
+
+    }
+    return render(request,'user_center_order.html',context)
+
+class SiteView(LoginRequiredViewMixin,View):
+
+    def get(self,request):
+
+        addr_list = Address.objects.filter(user=request.user)
+
+        context={
+            'title':'收货地址',
+            'addr_list': addr_list,
+        }
+        return render(request,'user_center_site.html',context)
+
+    def post(self,request):
+        dict = request.POST
+        receiver = dict.get('receiver')
+        provice = dict.get('provice')  # 选中的option的value值
+        city = dict.get('city')
+        district = dict.get('district')
+        addr = dict.get('addr')
+        code = dict.get('code')
+        phone = dict.get('phone')
+        default = dict.get('default')
+        if not all([receiver, provice, city, district, addr, code, phone]):
+            return render(request, 'user_center_site.html', {'err_msg': '信息填写不完整'})
+
+        address = Address()
+        address.receiver = receiver
+        address.province_id = provice
+        address.city_id = city
+        address.district_id = district
+        address.addr = addr
+        address.code = code
+        address.phone_number = phone
+        if default:
+            address.isDefault = True
+        address.user = request.user
+        address.save()
+
+        # 返回结果
+        return redirect('/user/site')
+def area(request):
+    pid=request.GET.get('pid')
+    if pid is None:
+        slist=AreaInfo.objects.filter(aParent__isnull=True)
+    else:
+        slist=AreaInfo.objects.filter(aParent__id=pid)
+    slist2=[]
+    for s in slist:
+        slist2.append({'id':s.id,'title':s.title})
+    return JsonResponse({'list':slist2})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

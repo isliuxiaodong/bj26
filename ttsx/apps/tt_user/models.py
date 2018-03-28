@@ -26,6 +26,7 @@ class Address(BaseModel):
     code = models.CharField(max_length=6)
     phone_number = models.CharField(max_length=11)
     isDefault = models.BooleanField(default=False)
+    user = models.ForeignKey(User,null=True)
 
     class Meta:
         db_table = 'df_address'

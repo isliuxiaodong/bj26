@@ -127,3 +127,32 @@ EMAIL_HOST_USER = 'isliuxiaodong@163.com'
 EMAIL_HOST_PASSWORD = 'czkj150915'
 #收件人看到的发件人
 EMAIL_FROM = '天天生鲜<isliuxiaodong@163.com>'
+
+#缓存设置，使用redis保存缓存的内容
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/6",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+# LOGIN_URL = '/user/login'
+LOGIN_URL = '/user/login'
+#指定上传文件时，使用哪个类进行保存
+DEFAULT_FILE_STORAGE = 'utils.storage.FdfsStorage'
+#指定FastDFS客户端的配置文件
+FDFS_CLIENT=os.path.join(BASE_DIR,'utils/fdfs_client.conf')
+FDFS_SERVER='http://127.0.0.1:8888/'
+
+#配置tinymce的样式
+TINYMCE_DEFAULT_CONFIG = {
+  'theme': 'advanced', # 丰富样式
+  'width': 600,
+  'height': 400,
+}
