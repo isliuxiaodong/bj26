@@ -172,19 +172,17 @@ def info(request):
     goods_list = []
     for gid in gid_list:
         goods_list.append(GoodsSKU.objects.get(pk=gid))
-
+    print(goods_list)
     context = {
         'title': '个人信息',
         'address': address,
-        # 'goods_list': goods_list,
+        'goods_list': goods_list,
     }
     return render(request,'user_center_info.html',context)
 
 @login_required()
 def order(request):
-    context={
-
-    }
+    context={}
     return render(request,'user_center_order.html',context)
 
 class SiteView(LoginRequiredViewMixin,View):

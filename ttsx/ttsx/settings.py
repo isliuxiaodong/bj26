@@ -156,3 +156,6 @@ TINYMCE_DEFAULT_CONFIG = {
   'width': 600,
   'height': 400,
 }
+
+#生成静态页面的路径
+GENERATE_HTML=os.path.join(BASE_DIR,'static/html')
