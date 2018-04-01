@@ -1,0 +1,71 @@
+{% extends 'base_goods.html' %}
+
+{% block body2 %}
+	<div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>
+				<span></span>
+				<ul class="subnav">
+                    {% for category in category_list %}
+					<li><a href="/list{{ category.id }}" class="{{ category.logo }}">{{ category.name }}</a></li>
+                    {% endfor %}
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="/">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="/">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="/">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="breadcrumb">
+		搜索 <span style="color: red">{{ query }}</span>  结果如下：
+	</div>
+
+	<div class="main_wrap clearfix">
+        <ul class="goods_type_list clearfix">
+            {% for obj in page_obj %}
+            <li>
+                <a href="/{{ obj.object.id }}"><img src="{{ obj.object.default_image.url }}"></a>
+                <h4><a href="/{{ obj.object.id }}">{{ obj.object.name }}</a></h4>
+                <div class="operate">
+                    <span class="prize">￥{{ obj.object.price }}</span>
+                    <span class="unit">{{ obj.object.price }}/{{ obj.object.unit }}</span>
+                    <a href="#" class="add_goods" title="加入购物车"></a>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="pagenation">
+            {% if page_obj.has_previous %}
+                <a href="?page=1 &q={{ query }}">首页</a>
+                <a href="?page={{ page_obj.number|add:-1 }}&q={{ query }}">上一页</a>
+            {% else %}
+                <span>首页</span>
+                <span>上一页</span>
+            {% endif %}
+
+            {% for p in page_list %}
+                {% if p == page.number %}
+                <span class="active">{{ p }}</span>
+                {% else %}
+                <a href="?page={{ p }}&q={{ query }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.number|add:1 }}&q={{ query }}">下一页</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}">末页</a>
+            {% else %}
+                <span>下一页</span>
+                <span>末页</span>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock body2 %}

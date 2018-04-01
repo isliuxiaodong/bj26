@@ -53,9 +53,9 @@ class Registerview(View):
             context['err_msg'] = '邮箱格式不正确'
             return render(request, 'register.html', context)
 
-        if User.objects.filter(email=email).count() > 0:
-            context['err_msg'] = '邮箱已被注册'
-            return render(request, 'register.html', context)
+        # if User.objects.filter(email=email).count() > 0:
+        #     context['err_msg'] = '邮箱已被注册'
+        #     return render(request, 'register.html', context)
 
         user = User.objects.create_user(uname, email, pwd)
         user.is_active = False
@@ -67,7 +67,7 @@ class Registerview(View):
         msg = '<a href="http://127.0.0.1:8000/user/active/%s">点击激活</a>' % value
         send_mail('天天生鲜-账户激活', '', settings.EMAIL_FROM, [email], html_message=msg)
 
-        # send_user_active.delay(user)
+        # send_user_active.delay(user.id,user.email)
 
         return HttpResponse('注册成功,请到邮箱激活账号！')
 

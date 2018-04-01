@@ -1,13 +1,11 @@
 from django.shortcuts import render
 from .models import *
-from django.contrib.auth.decorators import login_required
-import os
-from django.conf import settings
 from django.core.cache import cache
 from django.http import Http404
 from django_redis import get_redis_connection
 from django.core.paginator import Paginator, Page
-
+from haystack.generic_views import SearchView
+from utils.page_list import get_page_list
 
 # Create your views here.
 def fdfs_test(request):
@@ -95,8 +93,21 @@ def list_sku(request,category_id):
     except:
         raise Http404()
 
+    #接收排序规则
+    order=int(request.GET.get('order',1))
+    if order == 1:
+        order_by = '-id'
+    elif order == 2:
+        order_by = '-price'
+    elif order == 3:
+        order_by = 'price'
+    elif order == 4:
+        order_by = '-sales'
+    else:
+        order_by = '-id'
+
     #查询当前分类的所有商品
-    sku_list=GoodsSKU.objects.filter(category_id=category_id).order_by('-id')
+    sku_list=GoodsSKU.objects.filter(category_id=category_id).order_by(order_by)
 
     #查询所有分类信息
     category_list=GoodsCategory.objects.all()
@@ -106,7 +117,28 @@ def list_sku(request,category_id):
 
     #分页
     paginator=Paginator(sku_list,15)
-    page=paginator.page(1)
+    #总页数
+    total_page=paginator.num_pages
+    pindex=int(request.GET.get('pindex',1))
+    if pindex<1:
+        pindex=1
+    if pindex>total_page:
+        pindex=total_page
+
+
+    page=paginator.page(pindex)
+    # page_list=[]
+    #
+    # if total_page<=5:
+    #     page_list=range(1,total_page+1)
+    # elif pindex<=2:
+    #     page_list=range(1,6)
+    # elif pindex>=total_page-1:
+    #     page_list=range(total_page-4,total_page+1)
+    # else:
+    #     page_list = range(pindex-2,pindex+3)
+    page_list=get_page_list(total_page,pindex)
+
 
     context={
         'title':'商品列表',
@@ -114,5 +146,21 @@ def list_sku(request,category_id):
         'category_list':category_list,
         'category_now':category_now,
         'new_list':new_list,
+        'order':order,
+        'page_list':page_list
     }
     return render(request,'list.html',context)
+
+class MySearchView(SearchView):
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['title']='搜索结果'
+        context['category_list']=GoodsCategory.objects.all()
+
+        #页码控制
+        total_page=context['paginator'].num_pages
+        pindex=context['page_obj'].number
+        context['page_list']=get_page_list(total_page,pindex)
+
+        return context
+

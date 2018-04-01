@@ -50,6 +50,7 @@ class BaseAdmin(admin.ModelAdmin):
         # super().save_model(request,obj,form,change)
         obj.save()
         # 生成静态页面
+        # generate_html.delay()
         generate_html()
         #删除缓存
         cache.delete('index')
@@ -58,6 +59,7 @@ class BaseAdmin(admin.ModelAdmin):
     def delete_model(self, request, obj):
         # super().delete_model(request,obj)
         obj.delete()
+        # generate_html.delay()
         generate_html()
         cache.delete('index')
 
