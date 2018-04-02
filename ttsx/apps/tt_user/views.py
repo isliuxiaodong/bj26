@@ -7,11 +7,13 @@ from django.core.mail import send_mail
 from django.conf import settings
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired
 from celery_tasks.tasks import send_user_active
-from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from utils.views import LoginRequiredViewMixin
 from django_redis import get_redis_connection
 from tt_goods.models import GoodsSKU
+import json
+
 
 # Create your views here.
 class Registerview(View):
@@ -133,11 +135,11 @@ class LoginView(View):
             return render(request, 'login.html', context)
         if not user.is_active:
             context['err_msg'] = '请先到邮箱中激活'
-            return  render(request, 'login.html', context)
+            return render(request, 'login.html', context)
 
         login(request, user)
 
-        next_url = request.GET.get('next','/user/info')
+        next_url = request.GET.get('next', '/user/info')
         response = redirect(next_url)
 
         if remember is None:
@@ -146,6 +148,23 @@ class LoginView(View):
         else:
             response.set_cookie('uname', uname, expires=60 * 60)
 
+        cart_str = request.COOKIES.get('cart')
+        if cart_str:
+            key = 'cart%d' % request.user.id
+            redis_client = get_redis_connection()
+            cart_dict = json.loads(cart_str)
+            for k, v in cart_dict.items():
+                if redis_client.hexists(key, k):
+                    count1 = int(redis_client.hget(key, k))
+                    count2 = v
+                    count0 = count1 + count2
+                    if count0>5:
+                        count0=5
+                    redis_client.hset(key, k, count0)
+                else:
+                    redis_client.hset(key, k, v)
+            response.delete_cookie('cart')
+
         return response
 
 
@@ -153,6 +172,7 @@ def logout_user(request):
     logout(request)
 
     return redirect('/user/login')
+
 
 @login_required()
 def info(request):
@@ -172,32 +192,33 @@ def info(request):
     goods_list = []
     for gid in gid_list:
         goods_list.append(GoodsSKU.objects.get(pk=gid))
-    print(goods_list)
+    # print(goods_list)
     context = {
         'title': '个人信息',
         'address': address,
         'goods_list': goods_list,
     }
-    return render(request,'user_center_info.html',context)
+    return render(request, 'user_center_info.html', context)
+
 
 @login_required()
 def order(request):
-    context={}
-    return render(request,'user_center_order.html',context)
+    context = {}
+    return render(request, 'user_center_order.html', context)
 
-class SiteView(LoginRequiredViewMixin,View):
 
-    def get(self,request):
+class SiteView(LoginRequiredViewMixin, View):
+    def get(self, request):
 
         addr_list = Address.objects.filter(user=request.user)
 
-        context={
-            'title':'收货地址',
+        context = {
+            'title': '收货地址',
             'addr_list': addr_list,
         }
-        return render(request,'user_center_site.html',context)
+        return render(request, 'user_center_site.html', context)
 
-    def post(self,request):
+    def post(self, request):
         dict = request.POST
         receiver = dict.get('receiver')
         provice = dict.get('provice')  # 选中的option的value值
@@ -225,30 +246,15 @@ class SiteView(LoginRequiredViewMixin,View):
 
         # 返回结果
         return redirect('/user/site')
+
+
 def area(request):
-    pid=request.GET.get('pid')
+    pid = request.GET.get('pid')
     if pid is None:
-        slist=AreaInfo.objects.filter(aParent__isnull=True)
+        slist = AreaInfo.objects.filter(aParent__isnull=True)
     else:
-        slist=AreaInfo.objects.filter(aParent__id=pid)
-    slist2=[]
+        slist = AreaInfo.objects.filter(aParent__id=pid)
+    slist2 = []
     for s in slist:
-        slist2.append({'id':s.id,'title':s.title})
-    return JsonResponse({'list':slist2})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        slist2.append({'id': s.id, 'title': s.title})
+    return JsonResponse({'list': slist2})

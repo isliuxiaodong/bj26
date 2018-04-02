@@ -6,6 +6,7 @@ from django_redis import get_redis_connection
 from django.core.paginator import Paginator, Page
 from haystack.generic_views import SearchView
 from utils.page_list import get_page_list
+import json
 
 # Create your views here.
 def fdfs_test(request):
@@ -45,7 +46,7 @@ def index(request):
         }
         # 缓存数据
         cache.set('index', context, 3600)
-
+    context['total_count']=get_cart_total(request)
     return render(request, 'index.html', context)
 
 
@@ -82,7 +83,7 @@ def detail(request, sku_id):
         'new_list': new_list,
         'other_list': other_list,
     }
-
+    context['total_count'] = get_cart_total(request)
     return render(request, 'detail.html', context)
 
 
@@ -149,9 +150,14 @@ def list_sku(request,category_id):
         'order':order,
         'page_list':page_list
     }
+    context['total_count'] = get_cart_total(request)
     return render(request,'list.html',context)
 
 class MySearchView(SearchView):
+    def get(self, request, *args, **kwargs):
+        self.curr_request = request
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['title']='搜索结果'
@@ -160,7 +166,24 @@ class MySearchView(SearchView):
         #页码控制
         total_page=context['paginator'].num_pages
         pindex=context['page_obj'].number
+        context['total_count'] = get_cart_total(self.curr_request)
         context['page_list']=get_page_list(total_page,pindex)
 
         return context
+
+
+def get_cart_total(request):
+    total_count=0
+
+    if request.user.is_authenticated():
+        redis_client=get_redis_connection()
+        for v in redis_client.hvals('cart%d'%request.user.id):
+            total_count+=int(v)
+    else:
+        cart_str=request.COOKIES.get('cart')
+        if cart_str:
+            cart_dict=json.loads(cart_str)
+            for k,v in cart_dict.items():
+                total_count+=v
+    return total_count
 
