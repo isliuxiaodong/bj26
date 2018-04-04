@@ -13,7 +13,9 @@ from utils.views import LoginRequiredViewMixin
 from django_redis import get_redis_connection
 from tt_goods.models import GoodsSKU
 import json
-
+from tt_order.models import *
+from django.core.paginator import Paginator,Page
+from utils.page_list import get_page_list
 
 # Create your views here.
 class Registerview(View):
@@ -203,7 +205,22 @@ def info(request):
 
 @login_required()
 def order(request):
-    context = {}
+    order_list=OrderInfo.objects.filter(user=request.user)
+    paginator=Paginator(order_list,2)
+    total_page=paginator.num_pages
+    pindex=int(request.GET.get('pindex',1))
+    if pindex<=1:
+        pindex=1
+    if pindex>total_page:
+        pindex=total_page
+    page=paginator.page(pindex)
+
+    page_list=get_page_list(total_page,pindex)
+    context = {
+        'title':'我的订单',
+        'page':page,
+        'page_list':page_list,
+    }
     return render(request, 'user_center_order.html', context)
 
 

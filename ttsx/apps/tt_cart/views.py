@@ -6,7 +6,6 @@ from django_redis import get_redis_connection
 
 # Create your views here.
 def add(request):
-
     if request.method != 'POST':
         return Http404()
     dict=request.POST
@@ -31,7 +30,7 @@ def add(request):
                 count0=5
             redis_client.hset(key,sku_id,count0)
         else:
-            redis_client.hset(key,sku_id.count)
+            redis_client.hset(key,sku_id,count)
 
         total_count=0
         for v in redis_client.hvals(key):

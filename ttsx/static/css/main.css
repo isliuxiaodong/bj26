@@ -392,7 +392,7 @@ html,body{height:100%}
 .settlements .col03 b{color:#ff0000;font-size:14px;padding:0 5px;}
 
 .settlements .col04{width:14%;text-align:center;float:right;}
-.settlements .col04 a{display:block;height:78px;background-color:#ff3d3d;text-align:center;line-height:78px;color:#fff;font-size:24px}
+.settlements .col04 input{display:block;height:78px;background-color:#ff3d3d;text-align:center;line-height:78px;color:#fff;font-size:24px;width: 100%;border:none;outline:none;}
 
 
 .common_title{width:1200px;margin:20px auto 0;font-size:14px;}
@@ -419,21 +419,21 @@ html,body{height:100%}
 
 .goods_list_th{height:40px;border-bottom:1px solid #ccc}
 .goods_list_th li{float:left;line-height:40px;text-align:center;}
-.goods_list_th .col01{width:25%}
-.goods_list_th .col02{width:20%}
-.goods_list_th .col03{width:25%}
-.goods_list_th .col04{width:15%}
-.goods_list_th .col05{width:15%}
+.goods_list_th .col01{width:60%}
+.goods_list_th .col02{width:10%}
+.goods_list_th .col03{width:10%}
+.goods_list_th .col04{width:10%}
+.goods_list_th .col05{width:10%}
 
 .goods_list_td{height:80px;border-bottom:1px solid #eeeded}
 .goods_list_td li{float:left;line-height:80px;text-align:center;}
 .goods_list_td .col01{width:4%}
 .goods_list_td .col02{width:6%}
-.goods_list_td .col03{width:15%}
-.goods_list_td .col04{width:20%}
-.goods_list_td .col05{width:25%}
-.goods_list_td .col06{width:15%}
-.goods_list_td .col07{width:15%}
+.goods_list_td .col03{width:50%}
+.goods_list_td .col04{width:10%}
+.goods_list_td .col05{width:10%}
+.goods_list_td .col06{width:10%}
+.goods_list_td .col07{width:10%}
 
 .goods_list_td .col02{text-align:right}
 .goods_list_td .col02 img{width:63px;height:63px;border:1px solid #ddd;display:block;margin:7px 0;float:right;}
@@ -451,8 +451,8 @@ html,body{height:100%}
 .order_list_th{width:1198px;border:1px solid #ddd;background-color:#f7f7f7;margin:20px auto 0;}
 .order_list_th li{float:left;height:30px;line-height:30px}
 .order_list_th .col01{width:20%;margin-left:20px}
-.order_list_th .col02{width:20%}
-
+.order_list_th .col02{width:60%}
+.order_list_th .col03{width:15%}
 
 .order_list_table{
 	width:1200px;
@@ -556,7 +556,7 @@ html,body{height:100%}
 }
 
 .user_info_list li span{
-	width:100px;
+	width:120px;
 	float:left;
 	text-align:right;
 }
